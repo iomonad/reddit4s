@@ -27,7 +27,7 @@ object RedditClient
     */
 
     private val _base_request: HttpRequest =
-        HttpRequest(uri = Uri(s"https://reddit.com/api"))
+        HttpRequest(uri = Uri(s"https://reddit.com/api/"))
 
     /*
     ** Json case class formats for current namespace.
@@ -89,6 +89,10 @@ object RedditClient
         (implicit system: ActorSystem, fmt: Format[T]): Future[T] =
             jsFuture.map(js => (js \ field).as[T])(system.dispatcher)
 
+    /*
+    ** Apply factory instance
+    */
+
     def apply(token: RedditToken): RedditClient =
         new RedditClient(token)
 }
@@ -99,5 +103,30 @@ object RedditClient
 
 class RedditClient(token: RedditToken)
 {
+    import RedditClient._
 
+    private val _tokenized_request = _base_request.withUri(_base_request.uri.withQuery(
+            Uri.Query((_base_request.uri.query() :+ ("token" -> token)): _*)))
+
+    /*
+    ** Endpoints
+    */
+
+    def me()(implicit system: ActorSystem): Future[Boolean] =
+    {
+        val res = callmethod("v1.me")
+        extract[Boolean](res, "ok")
+    }
+
+
+    /*
+    ** Api method call using string point segment
+    */
+
+    private def callmethod(_api_method: String, _query_params: (String,Any)*)
+        (implicit system: ActorSystem): Future[JsValue] =
+    {
+        val r = _segmentize(_tokenized_request, _api_method)
+        apicall(_q_params(r, _sanitize_params(_query_params)))
+    }
 }
