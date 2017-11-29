@@ -1,23 +1,34 @@
 package io.trosa.reddit4s
 
-import akka.actor.ActorSystem
-import io.trosa.reddit4s.models.OauthTokens
-import java.io
-
-import scala.concurrent.Future
+import akka.http.scaladsl.model.{HttpRequest, Uri}
 
 package object oauth
 {
-    def oauthchallenge(clientId: String, clientSecret: String, code: String,
-        redirectUri: Option[String] = None)
-        (implicit system: ActorSystem): Future[OauthTokens] =
+    /*
+    ** Add parameters to the headers.
+    */
+
+    def _q_params(request: HttpRequest,
+        queryParams: Seq[(String,String)]): HttpRequest =
+            request.withUri(request.uri.withQuery(
+                Uri.Query(request.uri.query() ++ queryParams: _*)))
+
+    /*
+    ** Sanitize headers before request
+    */
+
+    def _sanitize_params(params: Seq[(String,Any)]):
+        Seq[(String,String)] =
     {
-        val _res_params: Seq[(String, io.Serializable)] = Seq(
-            "client_id" -> clientId,
-            "client_secret" -> clientSecret,
-            "code" -> code,
-            "redirect_uri" -> redirectUri
-        )
-        ???
+        var p = Seq[(String,String)]()
+        params.foreach {
+            case (k, Some(v)) => p :+= (k -> v.toString)
+            case (k, None) =>
+            case (k, v) => p :+= (k -> v.toString)
+        }
+        p
     }
+
+    def _segmentize(request: HttpRequest, segment: String): HttpRequest =
+        request.withUri(request.uri.withPath(request.uri.path + segment))
 }
