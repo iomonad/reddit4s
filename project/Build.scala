@@ -23,9 +23,8 @@ object Dependencies
     val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
 }
 
-object Reddit4s
+object Reddit4s extends Build
 {
-
     import Resolvers._
 
     lazy val Reddit4s =

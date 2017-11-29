@@ -1,6 +1,6 @@
 package io.trosa.reddit4s
 
-package object exceptions
+object exceptions
 {
     /*
     ** Custom exceptions for

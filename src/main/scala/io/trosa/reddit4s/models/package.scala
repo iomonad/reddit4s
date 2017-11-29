@@ -1,6 +1,6 @@
 package io.trosa.reddit4s
 
-package object models
+object models
 {
     /*
     ** Header token models for
