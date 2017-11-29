@@ -10,7 +10,7 @@ import java.io
 
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import play.api.libs.json.{Format, JsValue, Json}
+import play.api.libs.json.{Format, JsValue, Json, OFormat}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
@@ -33,7 +33,7 @@ object RedditClient
     ** Json case class formats for current namespace.
     */
 
-    private[reddit4s] implicit val _format_token = Json.format[OauthTokens]
+    private[reddit4s] implicit val _format_token: OFormat[OauthTokens] = Json.format[OauthTokens]
 
     /*
     ** Oauth exchange challenge
@@ -67,10 +67,10 @@ object RedditClient
             case response if response.status.intValue equals 200 =>
                 response.entity.toStrict(10 seconds) map { identity =>
                     val _parsed_data  = Json.parse(identity.data.decodeString("UTF-8"))
-                    (_parsed_data \ "ok").as[Boolean] match
-                    {
-                        case true => _parsed_data
-                        case false => throw RedditApiError((_parsed_data \ "error").as[String])
+                    if ((_parsed_data \ "ok").as[Boolean]) {
+                        _parsed_data
+                    } else {
+                        throw RedditApiError((_parsed_data \ "error").as[String])
                     }
                 }
             case response =>
@@ -106,7 +106,7 @@ class RedditClient(token: RedditToken)
     import RedditClient._
 
     private val _tokenized_request = _base_request.withUri(_base_request.uri.withQuery(
-            Uri.Query((_base_request.uri.query() :+ ("token" -> token)): _*)))
+            Uri.Query(_base_request.uri.query() :+ ("token" -> token): _*)))
 
     /*
     ** Endpoints

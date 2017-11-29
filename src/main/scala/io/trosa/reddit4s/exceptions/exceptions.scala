@@ -1,4 +1,4 @@
-package io.trosa.reddit4s
+package io.trosa.reddit4s.exceptions
 
 object exceptions
 {
@@ -10,7 +10,7 @@ object exceptions
     case class ResponseInvalidException(
         status_code: Int,
         body: String
-    ) extends Exception(s"Wrong response code: ${status_code}, body: ${body}")
+    ) extends Exception(s"Wrong response code: $status_code, body: $body")
 
     /*
     ** Generic API error exception
